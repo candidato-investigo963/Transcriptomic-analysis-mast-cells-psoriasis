@@ -42,9 +42,11 @@ The analysis follows a modular and reproducible workflow:
 
 ## 5. Analysis Steps
 
+
 ### 5.1 Data Acquisition
 
 Raw sequencing data were downloaded from the European Nucleotide Archive (ENA) using the GEO accession number as a reference. Each sample contains two FASTQ files corresponding to forward and reverse reads. All paired-end FASTQ files were organized by sample and condition (healthy vs. psoriasis).
+
 
 ### 5.2 Quality Control
 
@@ -60,9 +62,11 @@ Key metrics evaluated included:
 
 Most samples showed high and consistent quality across read positions, with minor adapter presence and some typical RNA-seq duplication patterns.
 
+
 ### 5.3 Preprocessing
 
 Adapter trimming was performed to remove residual sequencing adapters and low-quality bases. The trimming process removed only a small fraction of reads, confirming that the original data quality was already high.
+
 
 ### 5.4 Alignment and Gene Expression Quantification
 
@@ -78,6 +82,7 @@ Instead of full genome alignment, a pseudo-alignment strategy was used for effic
 Principal Component Analysis (PCA) was performed to visualize global transcriptional differences between conditions, identify clustering patterns, and detect potential outliers.
 
 The PCA revealed a clear separation between healthy and psoriasis samples, with one potential outlier corresponding to a sample with lower read depth and altered GC content.
+
 
 ### 5.6 Differential Gene Expression Analysis
 
