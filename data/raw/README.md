@@ -1,26 +1,44 @@
 # Raw RNA-Seq Data
 
-This folder is intended to store the raw RNA-Seq FASTQ files for the Mast Cell Transcriptomics project (psoriasis vs healthy controls).
+This folder stores the raw RNA-Seq FASTQ files for the Mast Cell Transcriptomics project (psoriasis vs healthy controls).
+
+## Study Design
+
+- 13 total samples
+  - 6 psoriasis
+  - 7 healthy controls
+- Sequencing type: Illumina paired-end
+- Expected read length: 150 bp
 
 ## Content
 
-- FASTQ files for each sample in paired-end format:
+- Paired-end FASTQ files:
   - `*_1.fastq.gz` → Forward reads
   - `*_2.fastq.gz` → Reverse reads
-- 13 samples in total:
-  - 6 psoriasis
-  - 7 healthy controls
+- `metadata.tsv` → Sample metadata (condition, accession ID, replicate, etc.)
 
-## Instructions
+## Data Source
 
-1. Download the raw FASTQ files from the public repository (ENA / GEO):
-   - ENA Project: [PRJNA896634](https://www.ebi.ac.uk/ena/browser/view/PRJNA896634)
-   - GEO Series: [GSE217060](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE217060)
+Raw data available from:
 
-2. Place the downloaded files in this folder (`data/raw/`).
+- ENA Project: PRJNA896634
+- GEO Series: GSE217060
 
-3. Ensure that files follow the paired-end naming convention:
+## Download Instructions
+
+Example using SRA Toolkit:
+
+```bash
+prefetch SRRXXXXXXX
+fasterq-dump SRRXXXXXXX --split-files --gzip
+```
+
+Place the resulting files in: data/raw/
+
+
+Ensure files follow the naming convention:
 
 SAMPLE_1.fastq.gz
 SAMPLE_2.fastq.gz
+
 
