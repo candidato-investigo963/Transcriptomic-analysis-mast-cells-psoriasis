@@ -1,6 +1,10 @@
 # Raw data
 data/raw/
 
+# Reference files
+data/reference/*.fa.gz
+data/reference/salmon_index/
+
 # Trimmed reads
 results/tmp_trimmed/
 
