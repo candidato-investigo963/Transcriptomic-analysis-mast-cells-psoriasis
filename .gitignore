@@ -1,5 +1,6 @@
 # Raw data
-data/raw/
+data/raw/*
+!data/raw/README.md
 
 # Reference files
 data/reference/*.fa.gz
