@@ -2,9 +2,9 @@
 data/raw/*
 !data/raw/README.md
 
-# Reference files
-data/reference/*.fa.gz
-data/reference/salmon_index/
+# Reference data
+data/reference/*
+!data/reference/README.md
 
 # Trimmed reads
 results/tmp_trimmed/
