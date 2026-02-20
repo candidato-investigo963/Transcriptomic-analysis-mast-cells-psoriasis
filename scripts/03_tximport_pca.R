@@ -29,7 +29,7 @@ for (pkg in cran_packages) {
 # --- Sample Metadata ---
 # =========================
 
-metadata_path <- "data/metadata/metadata.tsv"
+metadata_path <- "data/metadata.tsv"
 
 if (!file.exists(metadata_path)) {
   stop("Metadata file not found.")
@@ -57,7 +57,7 @@ if (!all(file.exists(files))) {
 # --- Reference FASTA ---
 # =========================
 
-reference_fasta <- "data/reference/Homo_sapiens.GRCh38.cdna.all.fa"
+reference_fasta <- "data/reference/Homo_sapiens.GRCh38.cdna.all.fa.gz"
 
 if (!file.exists(reference_fasta)) {
   stop("Reference FASTA not found. Please download it as described in the README and place it in data/reference/")
