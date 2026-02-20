@@ -1,0 +1,3 @@
+Sample	Salmon	FastQC
+FastQC		0.12.1
+Salmon	1.10.2	

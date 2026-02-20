@@ -6,61 +6,80 @@ set -euo pipefail
 # Project: PRJNA896634
 # ======================================
 
-# 1. Directories
 
-RAW_DIR="../data/raw"
-REF_DIR="../reference"
+# ======================================
+# 1. Define directories and parameters
+# ======================================
+
+TRIM_DIR="results/tmp_trimmed"
+REF_DIR="data/reference"
 INDEX_DIR="$REF_DIR/salmon_index"
-OUT_DIR="../results/salmon_quants"
+OUT_DIR="results/salmon_quants"
 
 TRANSCRIPTOME="$REF_DIR/Homo_sapiens.GRCh38.cdna.all.fa.gz"
-
 THREADS=8
 
 mkdir -p "$OUT_DIR"
 mkdir -p "$REF_DIR"
 
 
-# 1. Create Salmon index
+# ======================================
+# 2. Download transcriptome if missing
+# ======================================
 
-if [ ! -d "$INDEX_DIR" ]; then
-    echo "Salmon index not found. Creating index..."
-
-    salmon index \
-        -t "$TRANSCRIPTOME" \
-        -i "$INDEX_DIR" \
-        -k 31
-
-else
-    echo "Salmon index already exists. Skipping indexing."
+if [ ! -f "$TRANSCRIPTOME" ]; then
+    echo "Downloading human transcriptome (Ensembl 109)..."
+    curl -L ftp://ftp.ensembl.org/pub/release-109/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz -o "$TRANSCRIPTOME"
 fi
 
 
-# 2. Show FASTQ files
+# ======================================
+# 3. Create Salmon index (if not exists)
+# ======================================
 
-echo "FASTQ files detected:"
-ls "$RAW_DIR"/*_1.fastq.gz
-echo "-----------------------------------"
-
-
-# 3. Quantification loop
-
-for R1 in "$RAW_DIR"/*_1.fastq.gz
-do
-    R2=${R1/_1.fastq.gz/_2.fastq.gz}
-    SAMPLE=$(basename "$R1" _1.fastq.gz)
-
-    echo "Processing sample: $SAMPLE"
-
-    salmon quant \
+if [ ! -d "$INDEX_DIR" ] || [ -z "$(ls -A "$INDEX_DIR")" ]; then
+    echo "Creating Salmon index..."
+    salmon index \
+        -t "$TRANSCRIPTOME" \
         -i "$INDEX_DIR" \
-        -l A \
-        -1 "$R1" \
-        -2 "$R2" \
-        -p $THREADS \
-        --validateMappings \
-        -o "$OUT_DIR/$SAMPLE"
+        -k 31 \
+        --threads $THREADS
+else
+    echo "Salmon index already exists. Skipping."
+fi
 
+
+# ======================================
+# 4. Quantification
+# ======================================
+
+echo "Starting quantification..."
+
+# Loop through paired reads
+for R1 in "$TRIM_DIR"/*_1_paired.fastq.gz
+do
+    R2=${R1/_1_paired.fastq.gz/_2_paired.fastq.gz}
+    SAMPLE=$(basename "$R1" _1_paired.fastq.gz)
+
+    if [ -f "$R2" ]; then
+        echo "--------------------------------------------"
+        echo "Processing sample: $SAMPLE"
+        echo "--------------------------------------------"
+
+       salmon quant \
+            -i "$INDEX_DIR" \
+            -l A \
+            -1 "$R1" \
+            -2 "$R2" \
+            -p $THREADS \
+            --validateMappings \
+            --gcBias \
+            --seqBias \
+            -o "$OUT_DIR/$SAMPLE"
+
+    else
+        echo "ERROR: Missing R2 pair for $R1"
+    fi
 done
 
 echo "Quantification finished."

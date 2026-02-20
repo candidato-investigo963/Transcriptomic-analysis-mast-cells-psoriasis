@@ -18,3 +18,8 @@ results/qc/
 
 # Fastq
 *.fastq.gz
+
+# Logs and temporary files
+*.log
+nohup.out
+scripts/*.out

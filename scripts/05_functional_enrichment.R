@@ -23,6 +23,12 @@ for (p in packages) {
   library(p, character.only = TRUE)
 }
 
+library(clusterProfiler)
+library(enrichplot)
+library(org.Hs.eg.db)
+library(AnnotationDbi)
+library(tidyverse)
+
 # Create output folders (evita errores)
 dir.create("results/tables", recursive = TRUE, showWarnings = FALSE)
 
