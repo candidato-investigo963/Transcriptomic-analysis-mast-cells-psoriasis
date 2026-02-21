@@ -1,26 +1,25 @@
 # ============================================================
-# 04_differential_expression_volcano.R
-# Differential Expression + Annotation + Volcano Plot
+# 04_deseq2_deg.R
+# Differential Expression
 # ============================================================
 
 
 # ============================================================
-# --- Load Required Libraries (auto-install if missing) ---
+# --- Load Required Libraries ---
 # ============================================================
 
-required_packages <- c(
-  "DESeq2",
-  "apeglm",
-  "EnhancedVolcano",
-  "org.Hs.eg.db",
-  "AnnotationDbi",
-  "tidyverse"
-)
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
 
-for (pkg in required_packages) {
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    install.packages(pkg)
-  }
+bioc_pkgs <- c("DESeq2", "apeglm", "EnhancedVolcano", "org.Hs.eg.db", "AnnotationDbi")
+cran_pkgs <- c("tidyverse")
+
+for (pkg in bioc_pkgs) {
+  if (!requireNamespace(pkg, quietly = TRUE)) BiocManager::install(pkg, ask = FALSE)
+  library(pkg, character.only = TRUE)
+}
+for (pkg in cran_pkgs) {
+  if (!requireNamespace(pkg, quietly = TRUE)) install.packages(pkg)
   library(pkg, character.only = TRUE)
 }
 
@@ -41,11 +40,14 @@ res_shrink <- lfcShrink(
   type = "apeglm"
 )
 
+# MA Plot
+png("results/figures/MA_Plot_Psoriasis.png", width = 800, height = 600)
+plotMA(res_shrink, ylim=c(-5,5), main="MA Plot: Psoriasis vs Healthy (shrunken)")
+dev.off()
 
-# ============================================================
+# =========================
 # --- Annotation ---
-# ============================================================
-
+# =========================
 res_df <- as.data.frame(res_shrink) %>%
   rownames_to_column("gene_id") %>%
   mutate(
@@ -66,11 +68,9 @@ res_df <- as.data.frame(res_shrink) %>%
 res_df_prot <- res_df %>%
   dplyr::filter(genetype == "protein-coding")
 
-
-# ============================================================
-# --- High-Confidence Gene Selection ---
-# ============================================================
-
+# =========================
+# --- High-confidence gene selection ---
+# =========================
 ids_to_label <- res_df_prot %>%
   dplyr::filter(padj < 1e-6 & abs(log2FoldChange) > 2) %>%
   pull(gene_id)
@@ -79,29 +79,32 @@ ids_to_label <- res_df_prot %>%
 res_df_prot <- res_df_prot %>%
   mutate(label_volcano = ifelse(gene_id %in% ids_to_label, symbol, ""))
 
-
-# ============================================================
+# =========================
 # --- Volcano Plot ---
-# ============================================================
-
+# =========================
 # Keep only significant genes
-res_clean <- res_df_prot %>%
-  dplyr::filter(padj < 0.05 & abs(log2FoldChange) > 1)
+#res_clean <- res_df_prot %>%
+  #dplyr::filter(padj < 0.05 & abs(log2FoldChange) > 1)
 
 # Manual color assignment
 colors_manual <- ifelse(
-  res_clean$padj < 1e-6 & abs(res_clean$log2FoldChange) > 2,
-  "#d62728",  # Red = high confidence
-  "#7fbf7b"   # Green = significant
+  res_df_prot$padj < 1e-6 & abs(res_df_prot$log2FoldChange) > 2,
+  "#d62728",  # Red
+  ifelse(
+    res_df_prot$padj < 0.05 & abs(res_df_prot$log2FoldChange) > 1,
+    "#7fbf7b",  # Green
+    "grey70"    # Grey
+  )
 )
 
-names(colors_manual)[colors_manual == "#d62728"] <- "p < 1e-6, |LFC| > 2"
-names(colors_manual)[colors_manual == "#7fbf7b"] <- "p < 0.05, |LFC| > 1"
+names(colors_manual)[colors_manual == "#d62728"] <- "High confidence"
+names(colors_manual)[colors_manual == "#7fbf7b"] <- "Significant"
+names(colors_manual)[colors_manual == "grey70"] <- "Not significant"
 
 # Final volcano plot
 EnhancedVolcano(
-  res_clean,
-  lab = res_clean$label_volcano,
+  res_df_prot,
+  lab = res_df_prot$label_volcano,
   x = "log2FoldChange",
   y = "padj",
   colCustom = colors_manual,
@@ -117,25 +120,24 @@ EnhancedVolcano(
   widthConnectors = 0.5,
   max.overlaps = 50,
   title = "Psoriasis vs Healthy: Protein-Coding Genes",
-  subtitle = "Significant (Green) vs High-Confidence Biomarkers (Red)",
+  subtitle = "Red: p < 1e-6 & |LFC| > 2 | Green: p < 0.05 & |LFC| > 1",
   legendPosition = "top",
   legendLabSize = 12,
   legendIconSize = 5.0
 )
 
+ggsave("results/figures/Volcano_Psoriasis_vs_Healthy.png", volcano_plot, width = 10, height = 8)
 
-# ============================================================
-# --- Gene List for Functional Analysis ---
-# ============================================================
-
+# =========================
+# --- Gene list for functional analysis ---
+# =========================
 genes_for_functional <- res_df_prot %>%
   dplyr::filter(padj < 0.05 & abs(log2FoldChange) > 1)
 
 
-# ============================================================
+# =========================
 # --- Biomarker Table ---
-# ============================================================
-
+# =========================
 biomarker_table <- res_df_prot %>%
   dplyr::filter(gene_id %in% ids_to_label) %>%
   dplyr::arrange(padj) %>%
@@ -146,10 +148,10 @@ biomarker_table <- res_df_prot %>%
     "Downregulated"
   ))
 
+# Print table
 print(biomarker_table)
 
-write.csv(
-  biomarker_table,
-  "results/Tables/Biomarker_Table_Psoriasis.csv",
-  row.names = FALSE
-)
+dir.create("results/tables", recursive = TRUE, showWarnings = FALSE)
+
+# Save table
+write.csv(biomarker_table, "results/tables/Biomarker_Table_Psoriasis.csv", row.names = FALSE)
