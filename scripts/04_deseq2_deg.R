@@ -42,7 +42,7 @@ res_shrink <- lfcShrink(
 
 # MA Plot
 png("results/figures/MA_Plot_Psoriasis.png", width = 800, height = 600)
-plotMA(res_shrink, ylim=c(-5,5), main="MA Plot: Psoriasis vs Healthy (shrunken)")
+plotMA(res_shrink, ylim=c(-5,5), main="MA Plot: Psoriasis vs Healthy")
 dev.off()
 
 # =========================
@@ -102,13 +102,13 @@ names(colors_manual)[colors_manual == "#7fbf7b"] <- "Significant"
 names(colors_manual)[colors_manual == "grey70"] <- "Not significant"
 
 # Final volcano plot
-EnhancedVolcano(
+volcano_plot <- EnhancedVolcano(
   res_df_prot,
   lab = res_df_prot$label_volcano,
   x = "log2FoldChange",
   y = "padj",
   colCustom = colors_manual,
-  pCutoff = 1e-6,
+  pCutoff = 0.05,
   FCcutoff = 1.0,
   selectLab = res_df_prot$symbol[res_df_prot$gene_id %in% ids_to_label],
   pointSize = 2.5,
